@@ -1,9 +1,10 @@
-streamlit==1.28.0
+# Updated for Python 3.13 and Streamlit Community Cloud
+streamlit==1.36.0
 pandas==2.3.3
-numpy==1.19.3
-scikit-learn==1.8.0
-matplotlib==3.10.8
-plotly==5.17.0
-apyori==1.1.2
-seaborn==0.13.0
-joblib==1.5.2
+numpy==2.0.0
+scikit-learn==1.5.0
+matplotlib==3.10.0
+plotly==5.18.0
+mlxtend==0.23.1
+seaborn==0.13.2
+joblib==1.4.2
