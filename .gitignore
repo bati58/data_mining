@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.env
+
+# Virtual Environment
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Data files (optional - don't include if you want to push data)
+data/*.csv
+!data/StudentsPerformance.csv  # Keep this one
+
+# Large files
+*.zip
+*.tar
+*.gz
+
+# Logs
+*.log
+logs/
+
+# System files
+desktop.ini
