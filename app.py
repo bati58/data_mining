@@ -1,3 +1,8 @@
+from streamlit import config as st_config
+# Set Streamlit configuration to avoid CORS/XSRF warning
+st_config.set_option('server.enableCORS', True)
+st_config.set_option('server.enableXsrfProtection', False)
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -10,7 +15,9 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import (accuracy_score, precision_score, recall_score, 
                            f1_score, confusion_matrix, classification_report,
                            roc_curve, auc)
+# type: ignore
 from mlxtend.frequent_patterns import apriori, association_rules
+# type: ignore
 from mlxtend.preprocessing import TransactionEncoder
 import plotly.express as px
 import plotly.graph_objects as go
@@ -60,6 +67,14 @@ if 'model_metrics' not in st.session_state:
     st.session_state.model_metrics = {}
 if 'clusters' not in st.session_state:
     st.session_state.clusters = None
+if 'feature_encoders' not in st.session_state:
+    st.session_state.feature_encoders = {}
+if 'scaler' not in st.session_state:
+    st.session_state.scaler = None
+if 'le_target' not in st.session_state:
+    st.session_state.le_target = None
+if 'kmeans_model' not in st.session_state:
+    st.session_state.kmeans_model = None
 
 # Title
 st.markdown('<h1 class="main-header">📊 Web-Based Interactive Data Mining System</h1>', unsafe_allow_html=True)
@@ -365,6 +380,10 @@ elif page == "🧹 Data Preprocessing":
                     df['passed'] = (df['total_score'] >= threshold).astype(int)
                     st.success(f"✅ Created 'passed' column (threshold: {threshold})")
     
+    # Convert object columns to string to avoid Arrow serialization warnings
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].astype(str)
+    
     # Save preprocessed data
     if st.button("💾 Save Preprocessed Data", type="primary"):
         st.session_state.preprocessed_data = df
@@ -581,7 +600,7 @@ elif page == "🌲 Classification":
                 st.error(f"❌ Error training model: {str(e)}")
     
     # Prediction interface
-    if 'trained_model' in st.session_state:
+    if 'trained_model' in st.session_state and st.session_state.trained_model is not None:
         st.subheader("🔮 Make Predictions")
         
         if selected_features:
@@ -591,7 +610,9 @@ elif page == "🌲 Classification":
             for i, feature in enumerate(selected_features):
                 col_idx = i % 2
                 with cols[col_idx]:
-                    if feature in st.session_state.feature_encoders:
+                    # FIXED: Check if feature_encoders exists and contains the feature
+                    if (st.session_state.feature_encoders is not None and 
+                        feature in st.session_state.feature_encoders):
                         # For categorical features
                         encoder = st.session_state.feature_encoders[feature]
                         unique_vals = encoder.classes_
@@ -615,15 +636,20 @@ elif page == "🌲 Classification":
                 
                 # Encode using the same encoders
                 for col in selected_features:
-                    if col in st.session_state.feature_encoders:
+                    if (st.session_state.feature_encoders is not None and 
+                        col in st.session_state.feature_encoders):
                         encoder = st.session_state.feature_encoders[col]
-                        input_df[col] = encoder.transform([input_data[col]])[0]
+                        if input_data[col] in encoder.classes_:
+                            input_df[col] = encoder.transform([input_data[col]])[0]
+                        else:
+                            # Handle unseen categories
+                            input_df[col] = -1  # Or some default value
                 
                 # Make prediction
                 prediction = model.predict(input_df)[0]
                 
                 # Decode if categorical target
-                if 'le_target' in st.session_state:
+                if st.session_state.le_target is not None:
                     result = st.session_state.le_target.inverse_transform([prediction])[0]
                 else:
                     result = "PASS" if prediction == 1 else "FAIL"
@@ -634,6 +660,8 @@ elif page == "🌲 Classification":
                 if hasattr(model, 'predict_proba'):
                     proba = model.predict_proba(input_df)[0]
                     st.info(f"Prediction probabilities: {proba}")
+    else:
+        st.info("ℹ️ Please train a model first to enable predictions.")
 
 # Clustering Page
 elif page == "📊 Clustering":
@@ -1122,7 +1150,7 @@ elif page == "📈 Visualization":
 elif page == "📋 Performance Evaluation":
     st.markdown('<h2 class="sub-header">📋 Model Performance Evaluation</h2>', unsafe_allow_html=True)
     
-    if 'trained_model' not in st.session_state:
+    if 'trained_model' not in st.session_state or st.session_state.trained_model is None:
         st.warning("⚠️ Please train a classification model first in the 'Classification' page.")
         st.stop()
     
