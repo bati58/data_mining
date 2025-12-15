@@ -26,9 +26,9 @@ Thumbs.db
 # Streamlit
 .streamlit/
 
-# Data files (optional - don't include if you want to push data)
+# Data files (optional - don't include large data in repo)
 data/*.csv
-!data/StudentsPerformance.csv  # Keep this one
+!data/StudentsPerformance.csv  # Keep this sample
 
 # Large files
 *.zip

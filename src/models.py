@@ -31,3 +31,5 @@ class AcademicModel:
         """Load saved model"""
         self.classification_model = joblib.load(filepath)
         return self.classification_model
+    
+print("AcademicModel module loaded successfully.")
