@@ -213,7 +213,7 @@ elif page == "📁 Data Upload":
     if st.button("📊 Load StudentsPerformance.csv"):
         try:
             # Try to load from data folder
-            df = pd.read_csv('data/raw/StudentsPerformance.csv')
+            df = pd.read_csv('data/StudentsPerformance.csv')
 
             # Create derived columns
             df['total_score'] = df['math score'] + \
